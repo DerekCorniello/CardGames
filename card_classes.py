@@ -19,8 +19,8 @@ card_dict = {
                 10 : "Ten"
             }
 
-# An enumaerable for use in comparing card types
-class suits(Enum):
+# An enumaerable for use in comparing standard card types
+class standard_suits(Enum):
         Spade = "spades"
         Club = "clubs"
         Heart = "hearts"
@@ -31,7 +31,7 @@ class card():
 
     # constructor
     # Inputs: a card's suit, face value, and bool for if a card should be printed with numerals
-    def __init__(self, suit : suits, faceval: any, use_num : bool = False) -> None:
+    def __init__(self, suit : standard_suits, faceval: any, use_num : bool = False) -> None:
 
         self.suit = suit.value
         self.faceval = faceval
@@ -53,7 +53,8 @@ class card():
         if self.use_num:
             return str(self.faceval)+ " of " + str(self.suit)
         return str(card_dict.get(self.faceval)) + " of " + str(self.suit)
-# 
+
+# A card subclass that is used for the game blakjack
 class blackjack_card(card):
 
     def __init__(self, suit : str, value : any, use_num : bool) -> None:
@@ -84,6 +85,7 @@ class blackjack_card(card):
             return super().__str__() +  ", Value: 1 or 11"
         return super().__str__() + ", Value: " + str(self.play_val)
 
+# A collection of cards. Can contain as many or as few as the game requires.
 class deck():
 
     def __init__(self, card_type: any, use_num : bool):
@@ -92,43 +94,54 @@ class deck():
         self.cards = []
         self.card_type = card_type
         self.use_num = use_num
+        self.restore_deck()
 
+    def __len__(self):
+        return len(self.cards)
+    
+    # Add cards to the deck in order
     def restore_deck(self):
 
-        # For all four suits...
-        for i in range(4):
-            t = None
-            match i:
-                case 0:
-                    t = suits.Spade
-                case 1:
-                    t = suits.Club
-                case 2:
-                    t = suits.Diamond
-                case 3:
-                    t = suits.Heart
-            
-            # ...create 13 of each value...
+        # Change the amount of cards in a deck
+        self.num_decks = 1
+        if self.card_type == blackjack_card:
+            self.num_decks = 8
 
-            for j in range(1, 14):
-                v = None
-                match j: 
+        for i in range(self.num_decks):
+            # For all four suits...
+            for i in range(4):
+                t = None
+                match i:
+                    case 0:
+                        t = standard_suits.Spade
                     case 1:
-                        v = 'A'
-                    case 11:
-                        v = 'J'
-                    case 12:
-                        v = 'Q'
-                    case 13:
-                        v = 'K'
-                    case _:
-                        v = j
-                # ... and append it to deck
-                try: 
-                    self.cards.append(self.card_type(t, v, self.use_num))
+                        t = standard_suits.Club
+                    case 2:
+                        t = standard_suits.Diamond
+                    case 3:
+                        t = standard_suits.Heart
                 
-                except Exception as e:
-                    print(f"An error occurred when adding card to deck: {e}")
+                # ...create 13 of each value...
+
+                for j in range(1, 14):
+                    v = None
+                    match j: 
+                        case 1:
+                            v = 'A'
+                        case 11:
+                            v = 'J'
+                        case 12:
+                            v = 'Q'
+                        case 13:
+                            v = 'K'
+                        case _:
+                            v = j
+                    # ... and append it to deck
+                    try: 
+                        self.cards.append(self.card_type(t, v, self.use_num))
+                    
+                    except Exception as e:
+                        print(f"An error occurred when adding card to deck: {e}")
     
     # since __str__ must return a string type, print each card individually
     def __str__(self) -> str:
@@ -136,7 +149,8 @@ class deck():
             print(i)
         return ""
     
-    # Because cards are ordered, just draw a random card from the deck and delete it. 
+    # Because cards are ordered, just drawing a random card from the deck and delete it from
+    # the deck will act as "drawing a card"
     def draw(self) -> card:
         if len(self.cards) == 0:
             self.restore_deck()
@@ -145,6 +159,10 @@ class deck():
 def main():
     bj = deck(blackjack_card, False)
     reg = deck(card, False)
+    #print(reg)
+    #print(bj)
+    print(len(bj))
+    print(len(reg))
 
 if __name__ == "__main__":
     main()
