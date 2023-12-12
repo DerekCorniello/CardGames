@@ -1,19 +1,44 @@
 from enum import Enum
+from random import randint
 
+# A card dictionary to convert values to string versions of their value
+card_dict = {
+                "A" : "Ace",
+                "K" : "King",
+                "Q" : "Queen",
+                "J" : "Jack",
+                1 : "One",
+                2 : "Two",
+                3 : "Three",
+                4 : "Four",
+                5 : "Five",
+                6 : "Six",
+                7 : "Seven",
+                8 : "Eight",
+                9 : "Nine",
+                10 : "Ten"
+            }
+
+# An enumaerable for use in comparing card types
 class suits(Enum):
-    Spade = "Spades"
-    Diamond = "Diamonds"
-    Club = "Clubs"
-    Heart = "Hearts"
+        Spade = "spades"
+        Club = "clubs"
+        Heart = "hearts"
+        Diamond ="diamonds"
 
-
+# The card super class. The card class is a 'standard card' which can be edited in subclasses for each game's usage. 
 class card():
 
-    def __init__(self, suit : suits, faceval: any) -> None:
+    # constructor
+    # Inputs: a card's suit, face value, and bool for if a card should be printed with numerals
+    def __init__(self, suit : suits, faceval: any, use_num : bool = False) -> None:
 
-        self.suit = suit
+        self.suit = suit.value
         self.faceval = faceval
+        self.use_num = use_num
         
+        # ensure that the face value is a legal value
+
         if isinstance(faceval, int):
             if faceval not in (list(range(2,11))):
                 raise ValueError(f"Error in card value when initializing value '{faceval}' in card. Integer not between 2 and 10")
@@ -24,46 +49,53 @@ class card():
         else:
             raise ValueError(f"Error in card value when initializing value '{faceval}' in card. Invalid type.")
 
-
-
     def __str__(self) -> str:
-        return str(self.faceval) + " of " + str(self.suit)
-
+        if self.use_num:
+            return str(self.faceval)+ " of " + str(self.suit)
+        return str(card_dict.get(self.faceval)) + " of " + str(self.suit)
+# 
 class blackjack_card(card):
 
-    def __init__(self, suit : str, value : any) -> None:
+    def __init__(self, suit : str, value : any, use_num : bool) -> None:
 
-        try:
+        # Change value based on what the face value is of a card
+
+        if isinstance(value, int):
             if 2 <= value <= 10:
                 self.play_val = value
                 self.faceval = value
-        except:
 
-            try:
+        elif isinstance(value, str):
+            if value in ['J', 'Q', 'K']:
+                self.play_val = 10
+                self.faceval = str(value)
 
-                if value in ['J', 'Q', 'K']:
-                    self.play_val = 10
-                    self.faceval = str(value)
+            elif value == "A":
+                self.play_val = (1,11)
+                self.faceval = str(value)
+        else:
+            raise ValueError(f"Error in card value when initializing value '{value}' in blackjack card. Type: {type(value)}, type should be {type(int())} or {type(str())}.")
 
-                elif value == "A":
-                    self.play_val = (1,11)
-                    self.faceval = str(value)
-    
-            except:
-                raise ValueError(f"Error in card value when initializing value '{value}' in card.")
-
-        super().__init__(suit, self.faceval)
+        super().__init__(suit, self.faceval, use_num)
     
     def __str__(self) -> str:
+        # Since Ace can be 1/11, handle special case
         if self.play_val == (1,11):
-            return str(self.faceval) + " of " + str(self.suit) + ", Value: 1 or 11"
-        return str(self.faceval) + " of " + str(self.suit) + ", Value: " + str(self.play_val)
+            return super().__str__() +  ", Value: 1 or 11"
+        return super().__str__() + ", Value: " + str(self.play_val)
 
 class deck():
 
-    def __init__(self, card_type: any):
+    def __init__(self, card_type: any, use_num : bool):
 
+        # Start with an empty deck
         self.cards = []
+        self.card_type = card_type
+        self.use_num = use_num
+
+    def restore_deck(self):
+
+        # For all four suits...
         for i in range(4):
             t = None
             match i:
@@ -76,6 +108,8 @@ class deck():
                 case 3:
                     t = suits.Heart
             
+            # ...create 13 of each value...
+
             for j in range(1, 14):
                 v = None
                 match j: 
@@ -89,26 +123,28 @@ class deck():
                         v = 'K'
                     case _:
                         v = j
+                # ... and append it to deck
                 try: 
-                    self.cards.append(card_type(t.value, v))
+                    self.cards.append(self.card_type(t, v, self.use_num))
                 
                 except Exception as e:
                     print(f"An error occurred when adding card to deck: {e}")
-
-
- 
+    
+    # since __str__ must return a string type, print each card individually
     def __str__(self) -> str:
         for i in self.cards:
             print(i)
         return ""
+    
+    # Because cards are ordered, just draw a random card from the deck and delete it. 
+    def draw(self) -> card:
+        if len(self.cards) == 0:
+            self.restore_deck()
+        return self.cards.pop(randint(0,len(self.cards)-1))
 
 def main():
-    normal_deck = deck(card)
-    bj_deck = deck(blackjack_card)
-    
-    print(normal_deck)
-    print('\n\n\n\n\n\n')
-    print(bj_deck)
+    bj = deck(blackjack_card, False)
+    reg = deck(card, False)
 
 if __name__ == "__main__":
     main()
