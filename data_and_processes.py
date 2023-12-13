@@ -88,7 +88,7 @@ class blackjack_card(card):
 # A collection of cards. Can contain as many or as few as the game requires.
 class deck():
 
-    def __init__(self, card_type: any, use_num : bool):
+    def __init__(self, card_type: any, use_num : bool) -> None:
 
         # Start with an empty deck
         self.cards = []
@@ -96,11 +96,11 @@ class deck():
         self.use_num = use_num
         self.restore_deck()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.cards)
     
     # Add cards to the deck in order
-    def restore_deck(self):
+    def restore_deck(self) -> None:
 
         # Change the amount of cards in a deck
         self.num_decks = 1
@@ -136,7 +136,9 @@ class deck():
                             v = 'K'
                         case _:
                             v = j
+
                     # ... and append it to deck
+
                     try: 
                         self.cards.append(self.card_type(t, v, self.use_num))
                     
@@ -149,20 +151,24 @@ class deck():
             print(i)
         return ""
     
-    # Because cards are ordered, just drawing a random card from the deck and delete it from
+    # Because cards are ordered, just drawing a random card from the deck and delete it from 
     # the deck will act as "drawing a card"
     def draw(self) -> card:
         if len(self.cards) == 0:
             self.restore_deck()
         return self.cards.pop(randint(0,len(self.cards)-1))
 
-def main():
-    bj = deck(blackjack_card, False)
-    reg = deck(card, False)
-    #print(reg)
-    #print(bj)
-    print(len(bj))
-    print(len(reg))
+# Hand object used for storing the cards a player has in their hand.
+class hand:
+    def __init__(self, name : str) -> None:
+        self.name = name
+        self.cards = []
 
-if __name__ == "__main__":
-    main()
+# Table object used to store player hands
+class table:
+    def __init__(self) -> None:
+        self.deck = None
+        self.hands = []
+    
+    def add_hand(self, new_hand: hand) -> None:
+        self.hands.append(new_hand)
